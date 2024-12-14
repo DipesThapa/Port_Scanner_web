@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Port-Scanner</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body { margin-top: 30px; }
+      .result-section h5 { margin-top: 20px; }
+      pre { background: #f8f9fa; padding: 10px; border-radius: 5px; }
+      .disclaimer-modal .modal-body { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6">Advanced Security Scanner</h1>
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#disclaimerModal">
+            Disclaimer
+        </button>
+    </div>
+
+    <p class="text-muted">Use this tool to perform advanced scans with Nmap. For authorized and ethical testing only.</p>
+
+    <!-- Scan Form -->
+    <form method="POST" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <label for="target" class="form-label">Target Host/IP</label>
+            <input type="text" class="form-control" id="target" name="target" placeholder="e.g., 192.168.1.10" required>
+        </div>
+        <div class="col-md-4">
+            <label for="ports" class="form-label">Port Range (optional)</label>
+            <input type="text" class="form-control" id="ports" name="ports" placeholder="e.g., 1-1024">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Scan</button>
+        </div>
+    </form>
+
+    <!-- Error Message -->
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Results -->
+    {% if results %}
+        {% if results.error %}
+            <div class="alert alert-warning" role="alert">
+                {{ results.error }}
+            </div>
+        {% else %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Scan Results</h4>
+                    <p><strong>Host State:</strong> {{ results.host_state or 'Unknown' }}</p>
+                    <p><strong>IP Address:</strong> {{ results.ip_address or 'Unknown' }}</p>
+                    {% if results.hostnames %}
+                    <p><strong>Hostnames:</strong> {{ results.hostnames|join(', ') }}</p>
+                    {% endif %}
+                    {% if results.os_guess %}
+                    <p><strong>OS Guess:</strong> {{ results.os_guess }}</p>
+                    {% endif %}
+
+                    {% if results.open_ports %}
+                        <div class="result-section">
+                            <h5>Open Ports & Services</h5>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Port</th>
+                                        <th>Protocol</th>
+                                        <th>Service</th>
+                                        <th>Product</th>
+                                        <th>Version</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for port in results.open_ports %}
+                                    <tr>
+                                        <td>{{ port.port }}</td>
+                                        <td>{{ port.protocol }}</td>
+                                        <td>{{ port.service }}</td>
+                                        <td>{{ port.product }}</td>
+                                        <td>{{ port.version }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    {% if results.host_scripts %}
+                        <div class="result-section">
+                            <h5>Host Scripts (Vulnerabilities & Info)</h5>
+                            {% for script in results.host_scripts %}
+                                <h6>{{ script.id }}</h6>
+                                <pre>{{ script.output }}</pre>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if results.port_scripts %}
+                        <div class="result-section">
+                            <h5>Port-specific Scripts</h5>
+                            {% for script in results.port_scripts %}
+                                <h6>Port {{ script.port }} - {{ script.id }}</h6>
+                                <pre>{{ script.output }}</pre>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Disclaimer Modal -->
+<div class="modal fade disclaimer-modal" id="disclaimerModal" tabindex="-1" aria-labelledby="disclaimerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="disclaimerModalLabel">Disclaimer</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        This tool is provided for educational and authorized security testing purposes only. 
+        By using it, you agree to the following terms:
+        
+        1. Authorized Use Only: You must have explicit permission to test the target systems. Unauthorized scanning may be illegal.
+        
+        2. Compliance: You are responsible for adhering to all applicable laws and policies. 
+           
+        3. Assumption of Risk: Use this tool at your own risk. The developers provide no warranties and will not be liable for damages.
+        
+        4. Ethical Use: This tool is intended to help improve security by identifying vulnerabilities so they can be remediated. Do not use for malicious activities.
+        
+        If you do not agree to these terms, do not use this tool.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">I Understand</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS & Dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
+
